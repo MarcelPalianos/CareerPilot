@@ -3,8 +3,38 @@ services:
     build:
       context: ./backend
     container_name: careerpilot-backend
+    
     ports:
       - "8000:8000"
+    
     volumes:
       - ./backend/app:/app/app
+    
     restart: unless-stopped
+
+    depends_on:
+      - postgres
+
+    environment:
+      DATABASE_URL: postgresql+psycopg://careerpilot:careerpilot@postgres:5432/careerpilot
+
+  postgres:
+    image: postgres:17
+
+    container_name: careerpilot-db
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: careerpilot
+      POSTGRES_USER: careerpilot
+      POSTGRES_PASSWORD: careerpilot
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
