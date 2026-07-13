@@ -1,0 +1,10 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: careerpilot-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+    restart: unless-stopped
