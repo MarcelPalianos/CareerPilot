@@ -1,11 +1,13 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import Session
 
 import app.models
+from app.models import Job
+from app.schemas import JobCreate, JobResponse
 from app.database import Base, engine, get_db
 
 
@@ -45,4 +47,36 @@ def database_health_check(
         raise HTTPException(
             status_code503,
             detail="Database connection failed",
+        ) from error
+    
+@app.post(
+    "/jobs",
+    response_model=JobResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_job(
+    job_data: JobCreate,
+    database_session: Session = Depends(get_db),
+) -> Job:
+    job = Job(
+        company=job_data.company,
+        title=job_data.title,
+        location=job_data.location,
+        salary=job_data.salary,
+        description=job_data.description,
+        url=job_data.url,
+    )
+
+    database_session.add(job)
+
+    try:
+        database_session.commit()
+        database_session.refresh(job)
+        return job
+    
+    except IntegrityError as error:
+        database_session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A job with this url already exists",
         ) from error
