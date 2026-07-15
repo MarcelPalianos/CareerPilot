@@ -23,7 +23,7 @@ class JobResponse(BaseModel):
     salary: str
     description: str
     url: str
-    satus: str
+    status: str
     created_at: datetime
 
     

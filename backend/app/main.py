@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, status
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import Session
 
@@ -27,7 +27,7 @@ app = FastAPI(
 def read_root() -> dict[str, str]:
     return {"message": "CareerPilot is running"}
 
-@app.get("/heath")
+@app.get("/health")
 def health_check() -> dict[str, str]:
     return {"status": "healthy"}
 
@@ -45,7 +45,7 @@ def database_health_check(
     
     except SQLAlchemyError as error:
         raise HTTPException(
-            status_code503,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database connection failed",
         ) from error
     
@@ -80,3 +80,23 @@ def create_job(
             status_code=status.HTTP_409_CONFLICT,
             detail="A job with this url already exists",
         ) from error
+    
+@app.get(
+    "/jobs",
+    response_model=list[JobResponse],
+)
+def get_jobs(
+    skip: int = 0,
+    limit: int = 20,
+    database_session: Session = Depends(get_db),
+) -> list[Job]:
+    statement = (
+        select(Job)
+        .order_by(Job.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+
+    jobs = database_session.scalars(statement).all()
+
+    return list(jobs)
