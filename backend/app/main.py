@@ -24,9 +24,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.include_router(jobs_router)
-
-
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "CareerPilot is running"}
