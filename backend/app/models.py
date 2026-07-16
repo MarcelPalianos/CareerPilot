@@ -42,6 +42,7 @@ class Job(Base):
     url: Mapped[str] = mapped_column(
         String(500),
         unique=True,
+        
         nullable=False,
     )
     

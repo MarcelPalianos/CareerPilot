@@ -26,4 +26,11 @@ class JobResponse(BaseModel):
     status: str
     created_at: datetime
 
-    
+class JobUpdate(BaseModel):
+    company: str | None = None
+    title: str | None = None
+    location: str | None = None
+    salary: str | None = None
+    description: str | None = None
+    url: str | None = None
+    status: str | None = None
